@@ -46,16 +46,25 @@ const [pageLoading, setPageLoading] = useState(false);
 
   // ✅ Load chats on mount
   useEffect(() => {
-    const loadChats = async () => {
-      try {
-        const res = await instance.get('/chat');
-        dispatch(setChats(res.data.chats));
-      } catch (err) {
-        console.error('Error loading chats:', err);
+  const loadChats = async () => {
+    try {
+      const res = await instance.get('/chat');
+      const chats = res.data.chats;
+      dispatch(setChats(chats));
+
+      // ✅ Restore last opened chat (from localStorage)
+      const savedChatId = localStorage.getItem('lastChatId');
+      if (savedChatId) {
+        const foundChat = chats.find(c => c._id === savedChatId);
+        if (foundChat) dispatch(setCurrentChat(foundChat));
       }
-    };
-    loadChats();
-  }, [dispatch]);
+    } catch (err) {
+      console.error('Error loading chats:', err);
+    }
+  };
+  loadChats();
+}, [dispatch]);
+
 
   // ✅ Socket connections
  
