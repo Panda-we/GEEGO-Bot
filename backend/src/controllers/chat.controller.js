@@ -67,8 +67,41 @@ async function getChats(req, res) {
   }
 }
 
+// ✅ Generate Chat Title
+async function generateChatTitle(req, res) {
+  try {
+    const { chatId, userMessage, aiMessage } = req.body;
+
+    if (!chatId || !userMessage) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
+
+    // Simple title logic
+    let title = userMessage;
+    if (aiMessage) title += ' - ' + aiMessage.slice(0, 20);
+    if (title.length > 50) title = title.slice(0, 50) + '...';
+
+    // Update chat title in DB
+    const updatedChat = await chatModel.findByIdAndUpdate(
+      chatId,
+      { title },
+      { new: true }
+    );
+
+    if (!updatedChat) {
+      return res.status(404).json({ message: 'Chat not found' });
+    }
+
+    res.status(200).json({ title });
+  } catch (err) {
+    console.error('Error generating chat title:', err);
+    res.status(500).json({ message: 'Error generating chat title' });
+  }
+}
+
 module.exports = {
   createChat,
   getChats, // ✅ export this,
-  deleteChat
+  deleteChat,
+  generateChatTitle
 };
