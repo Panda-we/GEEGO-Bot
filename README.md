@@ -32,6 +32,7 @@ Built by **[Jianwe (Shakshi Pandey)](https://github.com/panda-we)** — a develo
 | **Database** | MongoDB (Mongoose) |
 | **AI Engine** | Gemini 2.0 Flash (Google GenAI SDK) |
 | **Auth & Security** | JWT, bcrypt, dotenv |
+| **Vector** | Pinecone |
 
 ---
 
