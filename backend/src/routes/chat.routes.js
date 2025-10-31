@@ -29,4 +29,5 @@ router.get('/', authMiddleware.authUser, chatController.getChats);
 // 🗑 delete a chat by ID
 router.delete('/:id', authMiddleware.authUser, chatController.deleteChat);
 
+
 module.exports=router  

@@ -11,6 +11,7 @@ import {
   addChat,
   setChats,
   setCurrentChat,
+   setMessages,
   addMessage,
   setLoading,
   clearCurrentChat,
@@ -21,7 +22,8 @@ import '../styles/chat.css';
 import { initSocket, getSocket } from "../utils/socket";
 import "../styles/Home.css";
 
-const Home = () => {
+
+  const Home = () => {
   const dispatch = useDispatch();
   const chats = useSelector(selectChats);
   const currentChat = useSelector(selectCurrentChat);
@@ -33,7 +35,8 @@ const Home = () => {
   const [showNewChatModal, setShowNewChatModal] = useState(false);
   const [user, setUser] = useState(null);
   const [showInstruction, setShowInstruction] = useState(false);
-const [pageLoading, setPageLoading] = useState(false);
+  const [pageLoading, setPageLoading] = useState(false);
+
 
   const inputRef = useRef(null);
   const messagesEndRef = useRef(null);
@@ -46,29 +49,40 @@ const [pageLoading, setPageLoading] = useState(false);
 
   // ✅ Load chats on mount
   useEffect(() => {
-  const loadChats = async () => {
-    try {
-      const res = await instance.get('/chat');
-      const chats = res.data.chats;
-      dispatch(setChats(chats));
-
-      // ✅ Restore last opened chat (from localStorage)
-      const savedChatId = localStorage.getItem('lastChatId');
-      if (savedChatId) {
-        const foundChat = chats.find(c => c._id === savedChatId);
-        if (foundChat) dispatch(setCurrentChat(foundChat));
+    const loadChats = async () => {
+      try {
+        const res = await instance.get('/chat');
+        dispatch(setChats(res.data.chats));
+      } catch (err) {
+        console.error('Error loading chats:', err);
       }
-    } catch (err) {
-      console.error('Error loading chats:', err);
-    }
-  };
-  loadChats();
-}, [dispatch]);
-
+    };
+    loadChats();
+  }, [dispatch]);
 
   // ✅ Socket connections
  
 
+// ✅ Load messages whenever user selects a chat
+useEffect(() => {
+  const loadMessages = async () => {
+    if (!currentChat?._id) return;
+    try {
+      const res = await instance.get(`/messages/${currentChat._id}/messages`);
+      const msgs = res.data.data.map((m) => ({
+        id: m._id,
+        text: m.content,
+        isAi: m.role === 'model',
+        timestamp: m.createdAt,
+      }));
+      dispatch(setMessages(msgs));
+    } catch (err) {
+      console.error('Error loading messages:', err);
+    }
+  };
+
+  loadMessages();
+}, [currentChat, dispatch]);
 
 
   // ✅ Fix: set user from localStorage (and remove Guest)

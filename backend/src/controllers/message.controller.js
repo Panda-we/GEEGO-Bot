@@ -73,7 +73,7 @@ async function getMessages(req, res) {
   try {
     const messages = await messageModel
       .find({ chat: chatId })
-      .populate('sender', 'firstname lastname email')
+      .populate('user', 'firstname lastname email')
       .sort({ createdAt: 1 }); // oldest first
 
     res.status(200).json({
