@@ -1,0 +1,65 @@
+.instruction-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 15, 15, 0.65);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.instruction-box {
+  background: #fff;
+  color: black;
+  padding: 25px 35px;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  width: 320px;
+  animation: popupFade 0.4s ease;
+}
+
+.instruction-box h2 {
+  margin-bottom: 12px;
+}
+
+.instruction-box ol {
+  text-align: left;
+  margin: 10px 0 20px;
+  padding-left: 20px;
+}
+
+.close-btn {
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.close-btn:hover {
+  background: #0056b3;
+}
+
+@keyframes popupFade {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+button,
+a,
+input[type="submit"],
+input[type="button"] {
+  cursor: pointer !important;
+}
+

@@ -1,0 +1,19 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+html,
+body {
+  height: 100%;
+  width: 100%;
+}
+
+button,
+a,
+input[type="submit"],
+input[type="button"] {
+  cursor: pointer !important;
+}
