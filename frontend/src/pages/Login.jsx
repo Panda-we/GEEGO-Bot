@@ -19,7 +19,7 @@ const Login = () => {
       console.log('Logging in with', { email, password });
 
       const response = await instance.post(
-        'https://geego-bot.onrender.com/api/auth/login',
+        'http://localhost:3000/api/auth/login',
         { email, password },
         { withCredentials: true }
       );

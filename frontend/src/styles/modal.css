@@ -13,7 +13,7 @@
   background: var(--surface, #fff);
   color: var(--text, #111);
   border-radius: 16px;
-  width: 90%;
+  width: min(90%, 400px);
   max-width: 400px;
   padding: 2rem;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);

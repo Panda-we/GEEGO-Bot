@@ -96,7 +96,7 @@
 }
 
 /* Responsive adjustments */
-@media (max-width: 560px) {
+@media (max-width: 360px) {
   .auth-card {
     padding: var(--space-md);
     border-radius: 12px;
@@ -104,6 +104,9 @@
 
   .name-row {
     flex-direction: column;
+  }
+   .auth-title {
+    font-size: 1.4rem;
   }
 }
 

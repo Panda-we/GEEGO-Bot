@@ -22,7 +22,7 @@ const Register = () => {
 
 
     console.log('Registering', { firstName, lastName, email, password });
-    instance.post('https://geego-bot.onrender.com/api/auth/register', {
+    instance.post('http://localhost:3000/api/auth/register', {
       fullName: { firstName, lastName },
       email,
       password
