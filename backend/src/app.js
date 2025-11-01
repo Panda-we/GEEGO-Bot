@@ -26,7 +26,7 @@ app.use('/api/chat', chatRoutes);
 app.use('/api/messages', messageRoutes); // ✅ separate path to avoid overlap
 
 
-app.get('*name',(req,res)=>{
+app.get(/.*/,(req,res)=>{
   res.sendFile(path.join(__dirname,'../public/index.html'))
 })
 
