@@ -7,17 +7,18 @@ const aiService = require('../services/ai.service')
 const messageModel = require('../models/message.model')
 const { createMemory, queryMemory } = require('../services/vector.service');
 const { text } = require("express");
-
+const allowedOrigins = process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(",") : ["http://localhost:5173", "http://localhost:3000"];
 
 function initSocketServer(httpServer) {
 
   const io = new Server(httpServer, {
-    cors: {
-      origin: 'http://localhost:5173',
-      methods: ['GET', 'POST'],
-      credentials: true
-    }
-  });
+  cors: {
+    origin: allowedOrigins,
+    methods: ['GET', 'POST'],
+    credentials: true,
+  },
+});
+
 
 
   io.use(async (socket, next) => {
