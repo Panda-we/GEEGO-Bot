@@ -10,14 +10,6 @@ const initialState = {
   unsavedChanges: false
 };
 
-// Normalizer utility
-const normalizeMessage = (msg) => ({
-  id: msg.id || msg._id || Date.now().toString(),
-  text: msg.text || msg.content || "",
-  role: msg.role || (msg.isAi ? "model" : "user"),
-  timestamp: msg.timestamp || msg.createdAt || new Date().toISOString(),
-});
-
 export const chatSlice = createSlice({
   name: 'chat',
   initialState,
@@ -28,36 +20,35 @@ export const chatSlice = createSlice({
     addChat: (state, action) => {
       state.chats.unshift(action.payload);
       state.currentChat = action.payload;
-      state.activeChat = action.payload.id || action.payload._id;
+      state.activeChat = action.payload.id;
       state.messages = [];
     },
     setCurrentChat: (state, action) => {
       state.currentChat = action.payload;
-      state.activeChat = action.payload.id || action.payload._id;
-      state.messages = (action.payload.messages || []).map(normalizeMessage);
+      state.activeChat = action.payload.id;
+      state.messages = action.payload.messages || [];
     },
     updateChatTitle: (state, action) => {
       const { chatId, title } = action.payload;
-      const chat = state.chats.find(c => c.id === chatId || c._id === chatId);
+      const chat = state.chats.find(c => c.id === chatId);
       if (chat) {
         chat.title = title;
-        if (state.currentChat?.id === chatId || state.currentChat?._id === chatId) {
+        if (state.currentChat?.id === chatId) {
           state.currentChat.title = title;
         }
       }
     },
     addMessage: (state, action) => {
-      const normalized = normalizeMessage(action.payload);
-      state.messages.push(normalized);
+      state.messages.push(action.payload);
       if (state.currentChat) {
         state.currentChat.messages = state.messages;
-        state.currentChat.lastMessage = normalized.text;
+        state.currentChat.lastMessage = action.payload.text;
         state.currentChat.updatedAt = new Date().toISOString();
       }
       state.unsavedChanges = true;
     },
     setMessages: (state, action) => {
-      state.messages = action.payload.map(normalizeMessage);
+      state.messages = action.payload;
     },
     setLoading: (state, action) => {
       state.isLoading = action.payload;
@@ -75,8 +66,8 @@ export const chatSlice = createSlice({
       state.unsavedChanges = false;
     },
     deleteChat: (state, action) => {
-      state.chats = state.chats.filter(chat => chat.id !== action.payload && chat._id !== action.payload);
-      if (state.currentChat?.id === action.payload || state.currentChat?._id === action.payload) {
+      state.chats = state.chats.filter(chat => chat.id !== action.payload);
+      if (state.currentChat?.id === action.payload) {
         state.currentChat = null;
         state.activeChat = null;
         state.messages = [];

@@ -68,18 +68,16 @@ useEffect(() => {
   const loadMessages = async () => {
     if (!currentChat?._id) return;
     try {
-      const res = await instance.get(`/chat/${currentChat._id}/messages`);
+      const res = await instance.get(`/messages/${currentChat._id}/messages`);
       const msgs = res.data.data.map((m) => ({
         id: m._id,
         text: m.content,
-          role: m.role, // "user" | "model" | "system"
-        isAi: m.role === "model",
+        isAi: m.role === 'model',
         timestamp: m.createdAt,
-        user: m.user ? `${m.user.firstname} ${m.user.lastname}` : null, // safe fallback
       }));
       dispatch(setMessages(msgs));
     } catch (err) {
-      console.error("Error loading messages:", err);
+      console.error('Error loading messages:', err);
     }
   };
 
@@ -158,83 +156,60 @@ useEffect(() => {
   };
 
   // ✅ Handle Message Submit
-  const handleSubmit = async (e) => {
+ const handleSubmit = async (e) => {
   e.preventDefault();
   if (!inputMessage.trim() || isLoading) return;
 
-  let chatId = currentChat?._id;
+  const userMessage = inputMessage.trim();
+  setInputMessage(''); // clear instantly
+  inputRef.current?.focus();
 
+  // Show message instantly
+  const userMessageObj = {
+    id: Date.now(),
+    text: userMessage,
+    isAi: false,
+    timestamp: new Date().toISOString(),
+  };
+  dispatch(addMessage(userMessageObj)); // ✅ This renders immediately
+
+  dispatch(setLoading(true));
+
+  let chatId = currentChat?._id;
   if (!chatId) {
     try {
       const res = await instance.post('/chat', { title: 'New Chat' });
-      const newChat = res.data.chat;
-      dispatch(addChat(newChat));
-      dispatch(setCurrentChat(newChat));
-      chatId = newChat._id;
+      chatId = res.data.chat._id;
+      dispatch(addChat(res.data.chat));
+      dispatch(setCurrentChat(res.data.chat));
     } catch (err) {
       console.error('Error creating chat:', err);
+      dispatch(setLoading(false));
       return;
     }
   }
 
-  const userMessage = inputMessage.trim();
-  setInputMessage('');
-  inputRef.current?.focus();
-
-  // ✅ Normalized user message
-  const userMessageObj = {
-    id: Date.now().toString(),
-    text: userMessage,
-    role: "user",
-    timestamp: new Date().toISOString(),
-  };
-
-  dispatch(addMessage(userMessageObj));
-  dispatch(setLoading(true));
-
   try {
-    const res = await instance.post(`/chat/${chatId}/messages`, { content: userMessage });
+    // ✅ Don’t re-fetch all messages; just add the new one
+    const res = await instance.post(`/messages/${chatId}/messages`, { content: userMessage });
 
-    // ✅ Normalized AI message
     const aiMessage = {
-      id: Date.now().toString(),
+      id: Date.now() + 1,
       text: res.data.content,
-      role: "model",
+      isAi: true,
       timestamp: new Date().toISOString(),
     };
-
     dispatch(addMessage(aiMessage));
-
-    if (messages.length === 0) {
-      try {
-        const titleRes = await instance.post('/chat/generate-title', {
-          chatId: currentChat._id,
-          userMessage,
-          aiMessage: aiMessage.text,
-        });
-        dispatch(updateChatTitle({
-          chatId: currentChat._id,
-          title: titleRes.data.title,
-        }));
-      } catch (err) {
-        const fallbackTitle =
-          userMessage.length > 30
-            ? userMessage.slice(0, 30) + '...'
-            : userMessage;
-        dispatch(updateChatTitle({
-          chatId: currentChat._id,
-          title: fallbackTitle,
-        }));
-      }
-    }
   } catch (err) {
     console.error('Error sending message:', err);
-    dispatch(addMessage({
-      id: Date.now().toString(),
-      text: 'Sorry, I encountered an error. Please try again.',
-      role: "system",
-      timestamp: new Date().toISOString(),
-    }));
+    dispatch(
+      addMessage({
+        id: Date.now() + 2,
+        text: '⚠️ Error: please try again.',
+        isAi: true,
+        timestamp: new Date().toISOString(),
+      })
+    );
   } finally {
     dispatch(setLoading(false));
   }
@@ -286,16 +261,12 @@ useEffect(() => {
         </div>
 
         <div className="messages-container" ref={messagesContainerRef}>
-  {messages.map((msg, idx) => (
-    <ChatMessage
-      key={msg.id || idx}
-      text={msg.text}
-      role={msg.role}
-    />
-  ))}
-  {isLoading && <ChatMessage text="Thinking..." role="model" />}
-  <div ref={messagesEndRef} style={{ height: 1, width: 1 }} />
-</div>
+          {messages.map((msg, idx) => (
+            <ChatMessage key={msg.id || idx} message={msg.text} isAi={msg.isAi} />
+          ))}
+          {isLoading && <ChatMessage isAi={true} typing={true} />}
+          <div ref={messagesEndRef} style={{ height: 1, width: 1 }} />
+        </div>
 
         <form className="input-container" onSubmit={handleSubmit}>
           <input

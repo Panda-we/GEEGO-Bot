@@ -6,7 +6,6 @@ import instance from '../utils/axios';
 import {
   selectCurrentChat,
   selectMessages,
-  selectIsLoading,
   setMessages,
   addMessage,
   setLoading,
@@ -17,22 +16,19 @@ export const ChatRoom = () => {
   const dispatch = useDispatch();
   const currentChat = useSelector(selectCurrentChat);
   const messages = useSelector(selectMessages);
-  const isLoading = useSelector(selectIsLoading);
-
   const [input, setInput] = useState('');
   const inputRef = useRef(null);
   const messagesEndRef = useRef(null);
 
-  // Scroll to bottom on new messages
+  // Auto-scroll
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     inputRef.current?.focus();
   }, [messages]);
 
-  // Fetch messages when chat changes
+  // Load existing messages
   useEffect(() => {
     if (!currentChat?._id) return;
-
     instance.get(`/chat/${currentChat._id}/messages`)
       .then(res => {
         const formatted = res.data.data.map(msg => ({
@@ -44,11 +40,12 @@ export const ChatRoom = () => {
         dispatch(setMessages(formatted));
       })
       .catch(err => console.error('Error fetching messages:', err));
-  }, [currentChat]);
+  }, [currentChat, dispatch]);
 
   // Listen for AI response
   useEffect(() => {
     socket.on('ai-response', (data) => {
+      // Replace "Thinking..." placeholder if exists
       dispatch(addMessage({
         id: Date.now(),
         text: data.content,
@@ -56,26 +53,33 @@ export const ChatRoom = () => {
         timestamp: new Date().toISOString()
       }));
     });
-
     return () => socket.off('ai-response');
   }, [dispatch]);
 
-  // Handle message send
+  // Handle send
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!input.trim() || isLoading || !currentChat?._id) return;
+    if (!input.trim() || !currentChat?._id) return;
 
     const userMessage = input.trim();
     setInput('');
-    inputRef.current?.focus();
 
+    // 👇 Instantly show user message
     dispatch(addMessage({
       id: Date.now(),
       text: userMessage,
       isAi: false,
       timestamp: new Date().toISOString()
     }));
-    dispatch(setLoading(true));
+
+    // 👇 Add temporary "Thinking..." AI placeholder
+    const tempId = `thinking-${Date.now()}`;
+    dispatch(addMessage({
+      id: tempId,
+      text: 'Thinking...',
+      isAi: true,
+      timestamp: new Date().toISOString()
+    }));
 
     try {
       await instance.post(`/chat/${currentChat._id}/messages`, {
@@ -87,11 +91,12 @@ export const ChatRoom = () => {
         content: userMessage
       });
 
+      // Generate title for new chat
       if (messages.length === 0) {
         const titleRes = await instance.post('/chat/generate-title', {
           chatId: currentChat._id,
           userMessage,
-          aiMessage: '...' // placeholder
+          aiMessage: '...'
         });
         dispatch(updateChatTitle({
           chatId: currentChat._id,
@@ -100,8 +105,6 @@ export const ChatRoom = () => {
       }
     } catch (err) {
       console.error('Message send failed:', err);
-    } finally {
-      dispatch(setLoading(false));
     }
   };
 
@@ -111,7 +114,6 @@ export const ChatRoom = () => {
         {messages.map((msg, idx) => (
           <ChatMessage key={msg.id || idx} message={msg.text} isAi={msg.isAi} />
         ))}
-        {isLoading && <ChatMessage message="Thinking..." isAi={true} />}
         <div ref={messagesEndRef} style={{ height: 1 }} />
       </div>
 
@@ -125,7 +127,7 @@ export const ChatRoom = () => {
           autoFocus
           autoComplete="off"
         />
-        <button type="submit" disabled={!input.trim() || isLoading}>
+        <button type="submit" disabled={!input.trim()}>
           Send
         </button>
       </form>
