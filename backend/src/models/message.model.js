@@ -2,29 +2,32 @@ const mongoose = require('mongoose');
 
 /**
  * Message Schema
- * Each message is linked to both a chat and a user.
+ * Each message is linked to both a chat and (optionally) a user.
  * The `role` helps differentiate between user, model, or system-generated messages.
  */
 const messageSchema = new mongoose.Schema(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'user', // sender user
-      required: true,
+      ref: 'user',
+      required: function () {
+        // Only require user if the role is "user"
+        return this.role === 'user';
+      },
     },
     chat: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'chat', // related chat
+      ref: 'chat',
       required: true,
     },
     content: {
       type: String,
       required: true,
-    //   trim: true,
+      trim: true,
     },
     role: {
       type: String,
-      enum: ['user', 'model', 'system'], // helps track who sent the message
+      enum: ['user', 'model', 'system'],//help to trach wo sent msg
       default: 'user',
     },
   },
