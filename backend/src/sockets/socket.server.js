@@ -7,7 +7,7 @@ const aiService = require('../services/ai.service')
 const messageModel = require('../models/message.model')
 const { createMemory, queryMemory } = require('../services/vector.service');
 const { text } = require("express");
-const allowedOrigins = process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(",") : ["http://localhost:5173", "http://localhost:3000"];
+const allowedOrigins = process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(",") : ["http://localhost:5173", "https://geego-bot.onrender.com"];
 
 function initSocketServer(httpServer) {
 
